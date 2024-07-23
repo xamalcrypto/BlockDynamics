@@ -1,0 +1,71 @@
+import requests
+import pandas as pd
+import matplotlib.pyplot as plt
+
+class BlockDynamics:
+    def __init__(self, api_url: str):
+        self.api_url = api_url
+
+    def fetch_block_data(self, block_number: int):
+        """
+        Fetch blockchain data for a specific block number.
+        """
+        response = requests.get(f"{self.api_url}/block/{block_number}")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(f"Failed to fetch data: {response.status_code}")
+
+    def fetch_transaction_data(self, block_number: int):
+        """
+        Fetch transaction data for a specific block number.
+        """
+        response = requests.get(f"{self.api_url}/block/{block_number}/transactions")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(f"Failed to fetch data: {response.status_code}")
+
+    def analyze_block_data(self, block_data):
+        """
+        Analyze block data to extract relevant metrics.
+        """
+        metrics = {
+            'block_number': block_data.get('number'),
+            'block_size': block_data.get('size'),
+            'transaction_count': len(block_data.get('transactions', []))
+        }
+        return metrics
+
+    def visualize_metrics(self, metrics_list):
+        """
+        Visualize the metrics as a line plot.
+        """
+        df = pd.DataFrame(metrics_list)
+        df.plot(x='block_number', y=['block_size', 'transaction_count'], kind='line')
+        plt.xlabel('Block Number')
+        plt.ylabel('Metrics')
+        plt.title('Blockchain Metrics')
+        plt.legend(['Block Size', 'Transaction Count'])
+        plt.grid(True)
+        plt.show()
+
+# Example usage
+if __name__ == "__main__":
+    api_url = 'https://blockchain-api.example.com'
+    block_dynamics = BlockDynamics(api_url)
+
+    # Example block numbers to analyze
+    block_numbers = [1000, 1001, 1002, 1003, 1004]
+    metrics_list = []
+
+    for block_number in block_numbers:
+        try:
+            block_data = block_dynamics.fetch_block_data(block_number)
+            metrics = block_dynamics.analyze_block_data(block_data)
+            metrics_list.append(metrics)
+        except Exception as e:
+            print(e)
+
+    # Visualize the collected metrics
+    block_dynamics.visualize_metrics(metrics_list)
